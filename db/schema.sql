@@ -88,9 +88,14 @@ ALTER TABLE queue ADD COLUMN IF NOT EXISTS service_end TIMESTAMP;
 
 -- Optional starter departments
 INSERT INTO departments (name, category, floor, location_description)
-VALUES
-  ('Consultation', 'Clinical', '1', 'Main hall near reception'),
-  ('Laboratory', 'Diagnostics', '2', 'North wing, room 204'),
-  ('Radiology', 'Diagnostics', '2', 'South wing, room 210'),
-  ('Pharmacy', 'Medication', '1', 'Ground floor next to exit')
-ON CONFLICT (name) DO NOTHING;
+SELECT v.name, v.category, v.floor, v.location_description
+FROM (
+  VALUES
+    ('Consultation', 'Clinical', '1', 'Main hall near reception'),
+    ('Laboratory', 'Diagnostics', '2', 'North wing, room 204'),
+    ('Radiology', 'Diagnostics', '2', 'South wing, room 210'),
+    ('Pharmacy', 'Medication', '1', 'Ground floor next to exit')
+) AS v(name, category, floor, location_description)
+WHERE NOT EXISTS (
+  SELECT 1 FROM departments d WHERE d.name = v.name
+);
