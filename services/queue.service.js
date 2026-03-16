@@ -46,7 +46,8 @@ const assignQueueAutomatically = async ({
   isPregnant = false,
   isEmergency = false,
 }) => {
-  const alreadyQueued = await queueModel.getQueueByVisitId(visitId);
+  // Only block if already active in THIS specific department
+  const alreadyQueued = await queueModel.getActiveQueueByVisitAndDept(visitId, departmentId);
   if (alreadyQueued) {
     await refreshQueueStateForDepartment(departmentId);
     return queueModel.getQueueByVisitId(visitId);
@@ -78,6 +79,16 @@ const assignQueueAutomatically = async ({
   return queueModel.getQueueByVisitId(visitId);
 };
 
+const referToDepartment = async ({ visitId, departmentId, isPregnant = false, isEmergency = false }) => {
+  // Complete the current active queue entry (removes from current dept dashboard)
+  const completed = await queueModel.completeActiveQueueByVisitId(visitId);
+  if (completed) {
+    await refreshQueueStateForDepartment(completed.department_id);
+  }
+  // Add to new department queue
+  return assignQueueAutomatically({ visitId, departmentId, isPregnant, isEmergency });
+};
+
 const getDepartmentQueueWithPredictions = async (departmentId) => {
   await refreshQueueStateForDepartment(departmentId);
   return queueModel.getDepartmentQueue(departmentId);
@@ -95,6 +106,7 @@ const getPatientQueueStatus = async (visitId) => {
 
 module.exports = {
   assignQueueAutomatically,
+  referToDepartment,
   getDepartmentQueueWithPredictions,
   getPatientQueueStatus,
   refreshQueueStateForDepartment,

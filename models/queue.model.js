@@ -77,6 +77,28 @@ const getQueueByVisitId = async (visitId) => {
   return rows[0] || null;
 };
 
+const getActiveQueueByVisitAndDept = async (visitId, departmentId) => {
+  const query = `
+    SELECT queue_id FROM queue
+    WHERE visit_id = $1 AND department_id = $2
+      AND status IN ('Waiting', 'InProgress')
+    LIMIT 1
+  `;
+  const { rows } = await db.query(query, [visitId, departmentId]);
+  return rows[0] || null;
+};
+
+const completeActiveQueueByVisitId = async (visitId) => {
+  const query = `
+    UPDATE queue
+    SET status = 'Completed', service_end = COALESCE(service_end, NOW())
+    WHERE visit_id = $1 AND status IN ('Waiting', 'InProgress')
+    RETURNING department_id
+  `;
+  const { rows } = await db.query(query, [visitId]);
+  return rows[0] || null;
+};
+
 const insertQueueEntry = async ({ visit_id, department_id, queue_priority, checkin_time, status }) => {
   const nextNumberQuery = `
     SELECT COALESCE(MAX(queue_number), 0) + 1 AS next_number
@@ -261,6 +283,8 @@ module.exports = {
   assignQueueNumber,
   getVisitForQueue,
   getQueueByVisitId,
+  getActiveQueueByVisitAndDept,
+  completeActiveQueueByVisitId,
   insertQueueEntry,
   rebalanceQueuePositions,
   refreshEstimatedWaitByDepartment,

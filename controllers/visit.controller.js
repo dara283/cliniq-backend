@@ -36,7 +36,7 @@ const assignDepartment = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: `Missing required fields: ${missing.join(", ")}` });
   }
 
-  const queueEntry = await queueService.assignQueueAutomatically({
+  const queueEntry = await queueService.referToDepartment({
     visitId: req.body.visit_id,
     departmentId: req.body.department_id,
     isPregnant: req.body.is_pregnant,
@@ -46,12 +46,13 @@ const assignDepartment = asyncHandler(async (req, res) => {
 });
 
 const updateStatus = asyncHandler(async (req, res) => {
-  const { visit_id, status, check_out_time } = req.body;
+  const { visit_id, status } = req.body;
   if (!visit_id || !status) {
     return res.status(400).json({ message: "visit_id and status are required" });
   }
 
-  const visit = await visitModel.updateVisitStatus(visit_id, status, check_out_time || null);
+  const checkOut = status === "Completed" ? new Date() : null;
+  const visit = await visitModel.updateVisitStatus(visit_id, status, checkOut);
   if (!visit) {
     return res.status(404).json({ message: "Visit not found" });
   }
