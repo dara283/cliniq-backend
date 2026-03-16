@@ -8,6 +8,9 @@ const router = express.Router();
 // POST /patient/register - create a new patient profile.
 router.post("/register", controller.registerPatient);
 
+// GET /patient/lookup/:hospital_number - public patient lookup by hospital number.
+router.get("/lookup/:hospital_number", controller.lookupPatient);
+
 // GET /patient/:id - get patient profile (staff only medical access).
 router.get(
   "/:id",

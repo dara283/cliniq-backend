@@ -44,8 +44,15 @@ const uploadPatientResults = asyncHandler(async (req, res) => {
   return res.status(201).json({ message: "Document uploaded", data: result });
 });
 
+const lookupPatient = asyncHandler(async (req, res) => {
+  const patient = await patientModel.getPatientByHospitalNumber(req.params.hospital_number);
+  if (!patient) return res.status(404).json({ message: 'Patient not found' });
+  return res.status(200).json({ data: patient });
+});
+
 module.exports = {
   registerPatient,
+  lookupPatient,
   getPatientProfile,
   getPatientVisits,
   uploadPatientResults,

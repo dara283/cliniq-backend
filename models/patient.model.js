@@ -36,6 +36,14 @@ const getPatientById = async (patientId) => {
   return rows[0] || null;
 };
 
+const getPatientByHospitalNumber = async (hospitalNumber) => {
+  const { rows } = await db.query(
+    "SELECT * FROM patients WHERE UPPER(hospital_number) = UPPER($1) LIMIT 1",
+    [hospitalNumber]
+  );
+  return rows[0] || null;
+};
+
 const getVisitHistoryByPatientId = async (patientId) => {
   const query = `
     SELECT
@@ -90,6 +98,7 @@ const uploadResult = async (payload) => {
 module.exports = {
   createPatient,
   getPatientById,
+  getPatientByHospitalNumber,
   getVisitHistoryByPatientId,
   uploadResult,
 };
