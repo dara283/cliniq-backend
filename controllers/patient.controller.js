@@ -1,6 +1,29 @@
 const patientModel = require("../models/patient.model");
 const { asyncHandler } = require("../middleware/error.middleware");
 
+const selfCheckIn = asyncHandler(async (req, res) => {
+  const required = ['patient_id', 'reason_for_visit', 'visit_type'];
+  const missing = required.filter((f) => !req.body[f]);
+  if (missing.length) {
+    return res.status(400).json({ message: `Missing required fields: ${missing.join(', ')}` });
+  }
+  const visitModel = require('../models/visit.model');
+  const queueService = require('../services/queue.service');
+  const visit = await visitModel.createVisit({
+    patient_id: req.body.patient_id,
+    reason_for_visit: req.body.reason_for_visit,
+    visit_type: req.body.visit_type,
+    department_id: 1,
+  });
+  const queue = await queueService.assignQueueAutomatically({
+    visitId: visit.visit_id,
+    departmentId: 1,
+    isPregnant: req.body.is_pregnant || false,
+    isEmergency: req.body.is_emergency || false,
+  });
+  return res.status(201).json({ message: 'Checked in successfully', data: { visit, queue } });
+});
+
 const registerPatient = asyncHandler(async (req, res) => {
   const required = ["hospital_number", "first_name", "last_name", "dob", "gender"];
   const missing = required.filter((field) => !req.body[field]);
@@ -52,6 +75,7 @@ const lookupPatient = asyncHandler(async (req, res) => {
 
 module.exports = {
   registerPatient,
+  selfCheckIn,
   lookupPatient,
   getPatientProfile,
   getPatientVisits,

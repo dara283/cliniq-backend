@@ -8,6 +8,9 @@ const router = express.Router();
 // POST /patient/register - create a new patient profile.
 router.post("/register", controller.registerPatient);
 
+// POST /patient/checkin - public self check-in, creates visit + queue entry.
+router.post("/checkin", controller.selfCheckIn);
+
 // GET /patient/lookup/:hospital_number - public patient lookup by hospital number.
 router.get("/lookup/:hospital_number", controller.lookupPatient);
 
