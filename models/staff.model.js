@@ -16,7 +16,7 @@ const getStaffById = async (staffId) => {
 const getAssignedPatients = async (staffId) => {
   const staff = await getStaffById(staffId);
   if (!staff || !staff.department_id) {
-    return [];
+    return { patients: [], completedCount: 0 };
   }
 
   const query = `
@@ -30,6 +30,7 @@ const getAssignedPatients = async (staffId) => {
       v.status AS visit_status,
       v.reason_for_visit,
       q.queue_number,
+      q.queue_priority,
       q.status AS queue_status,
       q.estimated_wait
     FROM queue q
@@ -40,8 +41,20 @@ const getAssignedPatients = async (staffId) => {
     ORDER BY q.queue_number ASC
   `;
 
-  const { rows } = await db.query(query, [staff.department_id]);
-  return rows;
+  const countQuery = `
+    SELECT COUNT(*) AS completed
+    FROM queue q
+    WHERE q.department_id = $1
+      AND q.status = 'Completed'
+      AND DATE(q.assigned_at) = CURRENT_DATE
+  `;
+
+  const [{ rows }, { rows: countRows }] = await Promise.all([
+    db.query(query, [staff.department_id]),
+    db.query(countQuery, [staff.department_id]),
+  ]);
+
+  return { patients: rows, completedCount: parseInt(countRows[0].completed, 10) };
 };
 
 module.exports = {

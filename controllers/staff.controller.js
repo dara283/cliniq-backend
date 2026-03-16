@@ -35,8 +35,8 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const getAssignedPatients = asyncHandler(async (req, res) => {
-  const patients = await staffModel.getAssignedPatients(req.user.staff_id);
-  return res.status(200).json({ data: patients });
+  const result = await staffModel.getAssignedPatients(req.user.staff_id);
+  return res.status(200).json({ data: result.patients, completedCount: result.completedCount });
 });
 
 module.exports = {
