@@ -8,6 +8,7 @@ const visitRoutes = require("./routes/visit.routes");
 const queueRoutes = require("./routes/queue.routes");
 const staffRoutes = require("./routes/staff.routes");
 const clinicRoutes = require("./routes/clinic.routes");
+const ehrRoutes = require("./routes/ehr.routes");
 const { notFound, errorHandler } = require("./middleware/error.middleware");
 const { startQueueAutomation } = require("./services/automation.service");
 const predictionService = require("./services/prediction.service");
@@ -66,6 +67,7 @@ app.use("/visit", visitRoutes);
 app.use("/queue", queueRoutes);
 app.use("/staff", staffRoutes);
 app.use("/clinic", clinicRoutes);
+app.use("/ehr", ehrRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
